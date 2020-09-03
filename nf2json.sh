@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-mkdir nerdfonts
+mkdir -p nerdfonts
 
 curl 'https://raw.githubusercontent.com/ryanoasis/nerd-fonts/master/src/glyphs/Symbols-2048-em%20Nerd%20Font%20Complete.ttf' \
     -o nerdfonts/Symbols-2048-em_Nerd_Font_Complete.ttf
@@ -10,7 +10,7 @@ curl 'https://raw.githubusercontent.com/ryanoasis/nerd-fonts/master/css/nerd-fon
     -o nerdfonts/nerd-fonts-generated.css
 
 
-mkdir svg
+mkdir -p svg
 
 fontforge -quiet -lang=ff -c 'Open($1); SelectWorthOutputting(); foreach Export("svg/%u.svg"); endloop;' nerdfonts/Symbols-2048-em_Nerd_Font_Complete.ttf 
 
@@ -33,6 +33,9 @@ awk '
         print c[1], "\\u"c[1], n[1];
     }
 ' nerdfonts/nerd-fonts-generated.css > "$tmp_glyphs"
+
+
+sed -i -E 's/[-_](.)/\U\1/g' "$tmp_glyphs"
 
 echo -e "$(<"$tmp_glyphs")" > "$tmp_glyphs"
 
@@ -75,5 +78,18 @@ echo "created nerdfonts_svg.json"
 jq -r '(map(keys) | add | unique) as $cols | map(. as $row | $cols | map($row[.])) as $rows | $cols, $rows[] | @csv' nerdfonts_svg.json > nerdfonts_svg.csv
 echo "created nerdfonts_svg.csv"
 
+mkdir -p 'icons'
+
+jq -c '.[]' nerdfonts_svg.json | awk '
+    BEGIN {
+        print "" > "icons/index.js";
+    }
+    {
+        match($0, /"name":"([^"]*)"/, n);
+        filename = n[1]".js";
+        print "export default", $0 > "icons/" filename;
+        print "export { default as", n[1], "} from \"./" filename "\";" >> "icons/index.js";
+    }
+'
 
 

@@ -1,11 +1,11 @@
 # nerdfonts2jsonsvg
-Convert nerd-font-icons to SVG / JSON-SVG / CSV
+Convert nerd-font-icons to SVG / JSON-SVG / ESModule / CSV
 
 The script will download `Symbols-2048-em Nerd Font Complete.ttf` from the
 [nerd-fonts Project](https://github.com/ryanoasis/nerd-fonts) converts it to
-SVG, JSON and CSV. 
+SVG, JSON, EcmaScript Module and CSV. 
 
-The exported JSON and CSV files respectivly contain all the data needed 
+The exported JSON, ESModule directory and CSV files respectivly contain all the data needed 
 to dynamically create `<svg>`-Tags with JavaScript.
 
 ## Usage
@@ -22,9 +22,15 @@ script and run it locally:
 `bash nf2json.sh`
 
 
-This will create `nerdfonts_svg.json`, `nerdfonts_svg.csv` and a `svg/` directory with all
-the icons seperated into their own files. The downloaded files from
-[nerd-fonts Project](https://github.com/ryanoasis/nerd-fonts) will be in `nerdfons/`.
+### Output 
+
+This will create following files and directories:
+
++ `nerdfonts_svg.json` SVGdata, iconname, glyph and codepoint as JSON file
++ `nerdfonts_svg.csv` SVGdata, iconname, glyph and codepoint as CSV file
++ `icons/*.js` JS/ESModule can be imported like `import { octZap } from './icons';`
++ `svg/*.svg` Icons as SVG files (one icon per file)
++ `nerdfonts/` TTF and CSS file downloaded from [nerd-fonts Project](https://github.com/ryanoasis/nerd-fonts)
 
 
 **Structure of `.json` file**
@@ -35,7 +41,7 @@ the icons seperated into their own files. The downloaded files from
       "viewbox": "-10 0 1300 2048",
       "d": "M1280 827l-1152 1152l384 -896h-512l1152 -1152l-384 896h512z",
       "glyph": "⚡",
-      "name": "oct-zap",
+      "name": "octZap",
       "codepoint": "26a1"
     },
 ]
