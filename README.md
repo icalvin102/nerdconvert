@@ -8,22 +8,6 @@ SVG, JSON and CSV.
 The exported JSON and CSV files respectivly contain all the data needed 
 to dynamically create `<svg>`-Tags with JavaScript.
 
-**Structure of `.json` file**
-
-``` json
-[
-    // ...
-    {
-      "viewbox": "-10 0 1300 2048",
-      "d": "M1280 827l-1152 1152l384 -896h-512l1152 -1152l-384 896h512z",
-      "glyph": "⚡",
-      "name": "oct-zap",
-      "codepoint": "26a1"
-    },
-    // ...
-]
-```
-
 ## Usage
 
 If all the dependencies are installed you can simply run:
@@ -42,6 +26,20 @@ This will create `nerdfonts_svg.json`, `nerdfonts_svg.csv` and a `svg/` director
 the icons seperated into their own files. The downloaded files from
 [nerd-fonts Project](https://github.com/ryanoasis/nerd-fonts) will be in `nerdfons/`.
 
+
+**Structure of `.json` file**
+
+``` json
+[
+    {
+      "viewbox": "-10 0 1300 2048",
+      "d": "M1280 827l-1152 1152l384 -896h-512l1152 -1152l-384 896h512z",
+      "glyph": "⚡",
+      "name": "oct-zap",
+      "codepoint": "26a1"
+    },
+]
+```
 
 ### Dependencies
 
