@@ -1,26 +1,22 @@
+import os
 import re
 import urllib.request
 import json
 import fontforge
+import argparse
 import xml.dom.minidom 
 from functools import reduce
 
-resources = {
-    'fontfile': {
-        'url': 'https://raw.githubusercontent.com/ryanoasis/nerd-fonts/master/src/glyphs/Symbols-2048-em%20Nerd%20Font%20Complete.ttf',
-        'filepath': 'nerdfonts/Symbols-2048-em_Nerd_Font_Complete.ttf'
-        },
-    'cssfile': {
-        'url': 'https://raw.githubusercontent.com/ryanoasis/nerd-fonts/master/css/nerd-fonts-generated.css',
-        'filepath': 'nerdfonts/nerd-fonts-generated.css'
-        }
-    }
 
-def download_resources():
+def download_resources(resources, force=False):
     for (name, resource) in resources.items():
-        print('Downloading', name, ':', resource['url'])
-        urllib.request.urlretrieve(resource['url'], resource['filepath'])
-        print('Saved', name, ':', resource['filepath'])
+        if os.path.isfile(resource['filepath']) and not force:
+            print('File exists. Skip download', name, ':', resource['filepath'])
+        else:
+            os.makedirs(os.path.dirname(resource['filepath']), exist_ok=True)
+            print('Downloading', name, ':', resource['url'])
+            urllib.request.urlretrieve(resource['url'], resource['filepath'])
+            print('Saved', name, ':', resource['filepath'])
 
 
 def save_json(filepath, data):
@@ -111,25 +107,99 @@ def extract_from_svgs(svgfiles):
     return { code:extract_from_svg(fn) for (code, fn) in files }
 
 
-def remove_unnamed(combined_data):
-    return {key:value for (key, value) in combined_data.items() if value.get('name')}
+def remove_unnamed(data):
+    return {k:v for (k, v) in data.items() if v.get('name')}
 
 
-def create_combined():
-    download_resources()
+def filter_fields(data, fields):
+    return [{k:v for (k, v) in record.items() if k in fields} for record in data ]
 
-    table = extract_from_css(resources['cssfile']['filepath'])
 
+def create_raw_data(resources, force_download=False, svgdir='svg'):
+    download_resources(resources, force_download)
+    
     font = fontforge.open(resources['fontfile']['filepath'])
 
+    table = extract_from_css(resources['cssfile']['filepath'])
+    print('Extracted iconinfo from cssfile:', resources['cssfile']['filepath'])
+
     glyph_data = extract_from_glyphs(get_glyphs(font))
+    print('Extracted iconinfo from fontfile:', resources['fontfile']['filepath'])
+    
+    svgdir = os.path.join(svgdir, '')
+    os.makedirs(svgdir, exist_ok=True)
+    svg_files = generate_svgs(get_glyphs(font), svgdir)
+    print('Generated svgicons from fontfile:', resources['fontfile']['filepath'], '=>', svgdir+'*.svg')
 
-    svg_files = generate_svgs(get_glyphs(font), 'svg/')
     svg_file_data = extract_from_svgs(svg_files)
-
-    combined_data = combine_tables(table, glyph_data, svg_files, svg_file_data)
-    combined_data = combine_tables(combined_data, create_glyps(combined_data.keys()))
-    combined_data = remove_unnamed(combined_data)
+    print('Extracted inconpaths from svgfiles:', svgdir+'*.svg')
 
 
-save_json('nf.json', create_combined())
+    data = combine_tables(table, glyph_data, svg_files, svg_file_data)
+    data = combine_tables(data, create_glyps(data.keys()))
+    data = remove_unnamed(data)
+
+    return list(data.values())
+
+
+def to_csv(data):
+    pass
+
+
+def to_json(data):
+    pass
+
+
+def to_es(data):
+    pass 
+
+
+def parse_args():
+
+    fields = ['code', 'name', 'glyphname', 'glyph', 'svgfile', 'viewbox', 'boundingbox', 'paths']
+
+    parser = argparse.ArgumentParser(
+            description='Convert nerd-font-icons to SVG / JSON / CSV / ESModule')
+
+    parser.add_argument('--download-dir', default='nerdfonts_dl/', type=str,
+                        help='Download Directory for nerd-fonts resources')
+
+    parser.add_argument('--svg-dir', default='svg/', type=str,
+                        help='Export Directory for the *.svg files')
+
+    parser.add_argument('--output-json', default='nerd-fonts.json', type=str,
+                        help='Filename of the *.json output')
+
+    parser.add_argument('--fields', default=fields, type=str,
+                        help='One or more fields that will be included in the output file.\nPossible values '+', '.join(fields))
+
+    return parser.parse_args()
+
+
+def main():
+
+    args = parse_args()
+
+    resources = {
+        'fontfile': {
+            'url': 'https://raw.githubusercontent.com/ryanoasis/nerd-fonts/master/src/glyphs/Symbols-2048-em%20Nerd%20Font%20Complete.ttf',
+            'filepath': os.path.join(args.download_dir, 'Symbols-2048-em_Nerd_Font_Complete.ttf')
+            },
+        'cssfile': {
+            'url': 'https://raw.githubusercontent.com/ryanoasis/nerd-fonts/master/css/nerd-fonts-generated.css',
+            'filepath': os.path.join(args.download_dir, 'nerd-fonts-generated.css')
+            }
+        }
+
+
+    raw_data = create_raw_data(resources, False, args.svg_dir)
+
+    data = filter_fields(raw_data, fields)
+
+    save_json(args.output_json, data)
+
+    print('done!')
+
+
+if __name__ == '__main__':
+    main()
