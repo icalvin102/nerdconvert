@@ -8,7 +8,6 @@ import xml.dom.minidom
 from functools import reduce
 
 
-
 def download_resources(resources, force=False):
     for (name, resource) in resources.items():
         if os.path.isfile(resource['filepath']) and not force:
@@ -135,6 +134,7 @@ def extract_from_svgs(svgfiles):
 
 def remove_unnamed(data):
     return {k:v for (k, v) in data.items() if v.get('name')}
+
 
 modifiers = {
     'camelcase': to_camel_case,
