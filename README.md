@@ -1,4 +1,4 @@
-added documentation# nerdconvert
+# nerdconvert
 Convert nerd-font-icons to SVG / JSON / ESModule / CSV
 
     
