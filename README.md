@@ -1,4 +1,4 @@
-# nerdconvert
+added documentation# nerdconvert
 Convert nerd-font-icons to SVG / JSON / ESModule / CSV
 
     
@@ -45,7 +45,7 @@ The file contains an array of objects with all the extracted [fields](#fields).
 The output option `--output FORMAT FILEPATH` or `-o FORMAT FILEPATH`
 can be used multiple times and specify a export target.
 
-`FORMART` can be set to `json`, `es`, `csv` or `svg`
+`FORMAT` can be set to `json`, `es`, `csv` or `svg`
 
 `FILEPATH` specifies a file or directory.
 If no fileextension (`.json | .js | .csv | .svg`) a directory is assumed
@@ -89,8 +89,8 @@ fields included in the output. If not specified all fields are included.
 
 ***Exmaple***
 
-`python nerdconvert.py --fields name name:icon:camelcase glyph:unicodechar \
-        --output json nerdfont_icons.json`
+```python nerdconvert.py --fields name name:icon:camelcase glyph:unicodechar \
+        --output json nerdfont_icons.json```
 
 Will create:
 
@@ -117,8 +117,8 @@ the exported record. The record will only be exported if the `REGEX`
 
 ***Example***
 
-`python nerdconvert.py --filter name '^mdi' --filter \
-        --output json material_icons.json`
+```python nerdconvert.py --filter name '^mdi' --filter \
+        --output json material_icons.json```
 
 Will create `material_icons.json` that contains only the Material Design Icons.
 

@@ -115,8 +115,13 @@ def extract_from_css(cssfilepath):
 
     names = re.findall(r'nf-(.*):', css)
     codes = re.findall(r'"\\(.*)"', css)
+    groups, iconnames = zip(*[n.split('-') for n in names])
 
-    return {c:create_char_dict(c, n) for (c, n) in zip(codes, names)}
+    fields = ['code', 'name', 'group', 'iconname']
+    field_values = zip(codes, names, groups, iconnames)
+
+    data = [dict(zip(fields, values)) for values in field_values]  
+    return {record['code']:record for record in data}
 
 
 def extract_from_svg(svgfilepath):
@@ -221,7 +226,7 @@ def create_raw_data(resources, force_download=False, svgdir='svg'):
     data = combine_tables(data, create_glyps(data.keys()))
     data = remove_unnamed(data)
 
-    return list(data.values())
+    return sorted(list(data.values()), key=lambda r: r['name'])
 
 
 def split_path(path, extension=None, default_filename=None):
@@ -273,31 +278,52 @@ def export_svg(filepath, data, record_formatter):
 
     return data
 
+def export_es_single(filepath, record, record_formatter):
+    filtered_record = record_formatter.format(record)
+    content = 'export default ' + dict_to_js(filtered_record) 
+    save_file(filepath, content)
+    return (filepath, record)
 
+
+def export_es_index_single(base_dir, module_filepath, name, record):
+    import_path = os.path.relpath(module_filepath, start=base_dir)
+    import_path = os.path.join('.', import_path)
+    index_path = os.path.join(base_dir, 'index.js')
+
+    content = '/* '+record['glyph']+' */ export { default as '+name+' } '
+    content += 'from \''+ import_path.replace('.js', '') +'\';\n'
+
+    with open(index_path, 'a', encoding='utf-8') as f:
+        f.write(content)
+    
 def export_es(filepath, data, record_formatter):
     base_dir, file_name = split_path(filepath, '.js', '{name}')
 
-    filename_formatter = FilenameFormatter(file_name)
-    index_js = ''
-    
-    name_formatter = FieldFormatter('name:camelcase', False)
+    filename_formatter = FilenameFormatter(
+            os.path.join(base_dir, '{group}/{iconname}.js'))
+
+    files = []
 
     for record in data:
-        filtered_record = record_formatter.format(record)
-        filename = filename_formatter.format(record)
-        content = 'export default ' + dict_to_js(filtered_record) 
-        module_name = name_formatter.format(record)[1]
-        save_file(os.path.join(base_dir, filename), content)
-        index_js += 'export { default as '+ module_name +' }'
-        index_js += 'from \''+ os.path.join('.', filename) +'\';\n'
+        file_path = filename_formatter.format(record)
+        files.append(export_es_single(file_path, record, record_formatter))
 
-    save_file(os.path.join(base_dir, 'index.js'), index_js)
-
+    for (file_path, record) in files:
+        main_module_name = to_camel_case(record['name'])
+        export_es_index_single(base_dir, file_path, main_module_name, record)
+        
+        group_module_name = to_camel_case(record['iconname'])
+        if re.match(r'^[^a-z]', group_module_name):
+            group_module_name = main_module_name
+        group_base_dir = os.path.dirname(file_path)
+        export_es_index_single(group_base_dir, file_path, group_module_name, record)
+        
     return data
+
         
 def parse_args():
 
-    fields = ['code', 'name', 'glyphname',
+    fields = ['code', 'name', 'glyphname', 'iconname', 'group',
                 'glyph', 'svgfile', 'viewbox', 'paths']
 
     parser = argparse.ArgumentParser(
@@ -309,7 +335,7 @@ def parse_args():
 
     
     parser.add_argument('--fields', default=fields, type=str, nargs='*',
-        metavar='FIELDNAME[:REPLACEMENT[:MODIFIER]]',
+        metavar='',
         help='One or more fields that will be included in the '
         'output file.\n A field can be specified in the form of'
         'FIELDNAME[:REPLACEMENT[:MODIFIER]]\n' 
@@ -322,7 +348,7 @@ def parse_args():
         help='Filter FIELD by REGEX (can be used multiple times)')
 
     
-    parser.add_argument('-o', '--output', default=[['json', 'nf__.json']],
+    parser.add_argument('-o', '--output',
         type=str, nargs='+', action='append',
         metavar=('FORMAT', 'FILEPATH'), help='Output')
 
