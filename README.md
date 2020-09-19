@@ -48,10 +48,10 @@ can be used multiple times and specify a export target.
 `FORMAT` can be set to `json`, `es`, `csv` or `svg`
 
 `FILEPATH` specifies a file or directory.
-If no fileextension (`.json | .js | .csv | .svg`) a directory is assumed
+If no fileextension (`.json | .csv | .svg`) a directory is assumed
 and a default filename is used.
 
-For formats that generate one file per icon (`es` and `svg`)
+For formats that generate one file per icon (`svg`)
 placeholders in the form of `{FIELD[:MODIFIER[:...]]}` can be used
 to create meaningful filenames.
 > (See [fields](#fields) and [modifiers](#modifiers) for more details)
@@ -90,7 +90,8 @@ fields included in the output. If not specified all fields are included.
 ***Exmaple***
 
 ```python nerdconvert.py --fields name name:icon:camelcase glyph:unicodechar \
-        --output json nerdfont_icons.json```
+        --output json nerdfont_icons.json
+```
 
 Will create:
 
@@ -118,7 +119,8 @@ the exported record. The record will only be exported if the `REGEX`
 ***Example***
 
 ```python nerdconvert.py --filter name '^mdi' --filter \
-        --output json material_icons.json```
+        --output json material_icons.json
+```
 
 Will create `material_icons.json` that contains only the Material Design Icons.
 
