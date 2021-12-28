@@ -58,7 +58,7 @@ to create meaningful filenames.
 
 ***Example***
 
-`python -o svg svgfiles/{name:camelcase}_{code}.svg`
+`python nerdconvert.py -o svg svgfiles/{name:camelcase}_{code}.svg`
 
 Will create files like `octZap_26a1.svg` in a directory called `svgfiles`
 
@@ -89,7 +89,8 @@ fields included in the output. If not specified all fields are included.
 
 ***Exmaple***
 
-```python nerdconvert.py --fields name name:icon:camelcase glyph:unicodechar \
+```
+python nerdconvert.py --fields name name:icon:camelcase glyph:unicodechar \
         --output json nerdfont_icons.json
 ```
 
@@ -118,7 +119,8 @@ the exported record. The record will only be exported if the `REGEX`
 
 ***Example***
 
-```python nerdconvert.py --filter name '^mdi' --filter \
+```
+python nerdconvert.py --filter name '^mdi' --filter \
         --output json material_icons.json
 ```
 
